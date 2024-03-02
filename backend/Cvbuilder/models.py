@@ -21,7 +21,7 @@ class Member(db.Model):
     interest = db.Column(db.String(200))
 
     def __str__(self):
-        return int(self.id)
+        return self.id
 
     def get_member_json(self):
         return {
@@ -42,8 +42,19 @@ class WorkExperience(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     work_title = db.Column(db.String(100))
     work_description = db.Column(db.String(1000))
-    member_id = db.Column(db.Integer, db.ForeignKey("member.id"))
+
     start_date = db.Column(db.Date)
+    member_id = db.Column(db.Integer, db.ForeignKey("member.id"))
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "work_title": self.work_title,
+            "work_description": self.work_description,
+            # Convert date to string for JSON serialization
+            "start_date": str(self.start_date),
+            "member_id": self.member_id
+        }
 
 
 class Project(db.Model):
@@ -52,6 +63,14 @@ class Project(db.Model):
     project_description = db.Column(db.String(100))
     member_id = db.Column(db.Integer, db.ForeignKey("member.id"))
 
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "project_title": self.project_title,
+            "project_description": self.project_description,
+            "member_id": self.member_id
+        }
+
 
 class Education(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -59,3 +78,14 @@ class Education(db.Model):
     starting_date = db.Column(db.Integer)
     ending_date = db.Column(db.Integer, nullable="True")
     member_id = db.Column(db.Integer, db.ForeignKey("member.id"))
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "graduated_from": self.graduated_from,
+            # Convert date to string for JSON serialization
+            "starting_date": str(self.starting_date),
+            # Convert date to string or None
+            "ending_date": str(self.ending_date) if self.ending_date else None,
+            "member_id": self.member_id
+        }

@@ -24,14 +24,14 @@ def fill_user_data():
         work_title="Software Engineer",
         work_description="Worked on various projects",
         start_date=datetime(2018, 1, 1),  # Example date
-        member=member.id  # Associate with the member by setting member_id
+        member=member  # Associate with the member
     )
 
     # Create Project instance
     project = Project(
         project_title="Project Title",
         project_description="Project Description",
-        member_id=member.id
+        member=member  # Associate with the member
     )
 
     # Create Education instance
@@ -39,7 +39,7 @@ def fill_user_data():
         graduated_from="University XYZ",
         starting_date=datetime(2014, 9, 1),  # Example date
         ending_date=datetime(2018, 6, 1),  # Example date
-        member_id=member.id
+        member=member  # Associate with the member
     )
 
     # Add instances to the session and commit changes
@@ -52,23 +52,39 @@ def fill_user_data():
     return jsonify({"message": "New Member Created."}), 201
 
 
-@api_views.route("/<email>", methods=["GET"])
-def get_all_members(email):
-
-    # return jsonify({"message": "Thats Great"})
+@api_views.route("/<user>", methods=["GET"])
+def get_all_members(user):
     try:
-        # Test -get all members from db
-        member = Member.query.filter_by(email=email).first()
-        work_experience = WorkExperience.query.filter_by(
-            member_id=member).first()
+        # Retrieve member from the database
+        member = Member.query.filter_by(username=user).first()
 
-        # Flask needs json serialied data
-        if member:
-            serialized_member = member.get_member_json()
-        else:
-            return jsonify({"message": "NO such Email Create a New!"})
-        # Return the list of members as JSON response
-        return jsonify(serialized_member), 200
+        # Retrieve associated work experience and education
+        work_experiences = WorkExperience.query.filter_by(
+            member_id=member.id).all()
+        educations = Education.query.filter_by(member_id=member.id).all()
+        projects = Project.query.filter_by(member_id=member.id).all()
+
+        # Serialize member, work experience, and education data
+        serialized_member = member.get_member_json() if member else None
+
+        serialized_projects = [project.to_dict()
+                               for project in projects] if projects else None
+
+        serialized_work_experience = [experience.to_dict()
+                                      for experience in work_experiences] if work_experiences else None
+
+        serialized_education = [education.to_dict()
+                                for education in educations] if educations else None
+
+        # Combine member, work experience, and education data into a single dictionary
+        response_data = {
+            "member": serialized_member,
+            "work_experience": serialized_work_experience,
+            "education": serialized_education,
+            "project": serialized_projects
+        }
+
+        return jsonify(response_data), 200
 
     except Exception as e:
-        return jsonify({"message": str(e)}), 500
+        return jsonify({"Error": str(e)}), 500
