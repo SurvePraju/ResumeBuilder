@@ -20,8 +20,22 @@ class Member(db.Model):
         'Education', uselist=False, backref='member', lazy=True)
     interest = db.Column(db.String(200))
 
+    def __str__(self):
+        return int(self.id)
+
     def get_member_json(self):
-        return {"id": self.id, "fullName": self.name, "email": self.email, "userName": self.username}
+        return {
+            "id": self.id,
+            "description": self.description,
+            "fullName": self.name,
+            "email": self.email,
+            "userName": self.username,
+            "contact": self.contact,
+            "website": self.website,
+            "designation": self.designation,
+            "skills": self.skills,
+            "interest": self.interest
+        }
 
 
 class WorkExperience(db.Model):
@@ -44,3 +58,4 @@ class Education(db.Model):
     graduated_from = db.Column(db.String(200))
     starting_date = db.Column(db.Integer)
     ending_date = db.Column(db.Integer, nullable="True")
+    member_id = db.Column(db.Integer, db.ForeignKey("member.id"))
